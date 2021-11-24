@@ -46,6 +46,20 @@ def printMenu():
 
 catalog = None
 
+def cargaDatos():
+    catalog= controller.init()
+    controller.loadServices(catalog)
+    controller.loadRutes(catalog)
+    controller.loadCities(catalog)
+    rta= controller.loadDatos(catalog)
+    print('El total de aeropuertos en cada grafo es: '+ str(rta[0]))
+    print('\n El total de rutas aéreas en cada grafo es: '+str(rta[1]))
+    print('\n El total de ciudades: '+str(rta[2]))
+    print('\n El primer aeropuerto cargado es: '+str(rta[3]['Name'])+ 'ciudad: '+str(rta[3]['City'])+ 'pais: '+ str(rta[3]['Country'])+ 
+    'latitud y longitud: '+ str(rta[3]['Latitude'])+ ', '+ str(rta[3]['Longitude']))
+    print('\n La informacion de la ultima ciudad cargada es: '+ str(rta[4]['city'])+'Su ppoblacion es de: ' + str(rta[4]['population'])+
+    'latitud y longitud'+ str(rta[4]['lat'])+', ' +str(rta[4]['lng']))
+
 """
 Menu principal
 """
@@ -54,7 +68,7 @@ while True:
     inputs = input('Seleccione una opción para continuar\n')
     if int(inputs[0]) == 1:
         print("Cargando información de los archivos ....")
-
+        cargaDatos()
     elif int(inputs[0]) == 2:
         pass
 

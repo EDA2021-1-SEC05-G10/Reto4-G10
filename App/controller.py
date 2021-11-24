@@ -25,9 +25,40 @@ import model
 import csv
 
 
-"""
-El controlador se encarga de mediar entre la vista y el modelo.
-"""
+def init():
+    analyzer = model.newCatalog()
+    return analyzer
+
+
+# ___________________________________________________
+#  Funciones para la carga de datos y almacenamiento
+#  de datos en los modelos
+# ___________________________________________________
+
+
+def loadServices(analyzer):
+    servicesfile = cf.data_dir + 'airports_full.csv'
+    input_file = csv.DictReader(open(servicesfile, encoding="utf-8"),
+                                delimiter=",")
+    for service in input_file:
+        model.add_stops(service, analyzer)
+    return analyzer
+
+def loadRutes(analyzer):
+    servicesfile = cf.data_dir + 'routes_full.csv'
+    input_file = csv.DictReader(open(servicesfile, encoding="utf-8"),
+                                delimiter=",")
+    for service in input_file:
+        model.add_rutes(service, analyzer)
+    return analyzer
+
+def loadCities(analyzer):
+    servicesfile = cf.data_dir + 'worldcities.csv'
+    input_file = csv.DictReader(open(servicesfile, encoding="utf-8"),
+                                delimiter=",")
+    for service in input_file:
+        model.add_cities(service, analyzer)
+    return analyzer
 
 # Inicialización del Catálogo de libros
 
@@ -36,3 +67,5 @@ El controlador se encarga de mediar entre la vista y el modelo.
 # Funciones de ordenamiento
 
 # Funciones de consulta sobre el catálogo
+def loadDatos(analyzer):
+    return model.cargaDatos(analyzer)
