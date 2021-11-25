@@ -56,7 +56,8 @@ def newCatalog():
                     'cities': None,
                     'components': None,
                     'paths': None,
-                    'ult_pos': None
+                    'ult_pos': None,
+                    'prim_pos': None
                     }
 
         analyzer['stops'] = mp.newMap(numelements=14000,
@@ -78,6 +79,8 @@ def newCatalog():
 
 # Funciones para agregar informacion al catalogo
 def add_stops(infostop, catalog):
+    if catalog['prim_pos'] is None:
+        catalog['prim-pos']= infostop
     info= mp.get(catalog['stops'], infostop['IATA'])
     if info is None:
         mp.put(catalog['stops'],infostop['IATA'],infostop)
@@ -108,12 +111,9 @@ def cargaDatos(catalog):
     NumStops= gr.numVertices(catalog['connections'])
     NumRutes= gr.numEdges(catalog['connections'])
     NumCities= lt.size(mp.keySet(catalog['cities']))
-    Vertices= gr.vertices(catalog['connections'])
-    print(Vertices['first'])
-    Primerelement=Vertices['first']
-    info= mp.get(catalog['cities'],Primerelement)['value']
 
-    return NumStops,NumRutes, NumCities, info, catalog['ult_pos']
+
+    return NumStops,NumRutes, NumCities, catalog['prim_pos'],catalog['ult_pos']
 
 # Funciones utilizadas para comparar elementos dentro de una lista
 def requerimiento1(catalog):
