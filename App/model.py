@@ -80,7 +80,7 @@ def newCatalog():
 # Funciones para agregar informacion al catalogo
 def add_stops(infostop, catalog):
     if catalog['prim_pos'] is None:
-        catalog['prim-pos']= infostop
+        catalog['prim_pos']= infostop
     info= mp.get(catalog['stops'], infostop['IATA'])
     if info is None:
         mp.put(catalog['stops'],infostop['IATA'],infostop)
@@ -113,7 +113,7 @@ def cargaDatos(catalog):
     NumCities= lt.size(mp.keySet(catalog['cities']))
 
 
-    return NumStops,NumRutes, NumCities, catalog['prim_pos'],catalog['ult_pos']
+    return NumStops,NumRutes, NumCities,catalog['prim_pos'],catalog['ult_pos']
 
 # Funciones utilizadas para comparar elementos dentro de una lista
 def requerimiento1(catalog):
