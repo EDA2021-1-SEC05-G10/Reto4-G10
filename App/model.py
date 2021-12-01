@@ -39,6 +39,7 @@ from DISClib.Utils import error as error
 import DISClib.DataStructures.linkedlistiterator as it
 from DISClib.Algorithms.Graphs import scc
 from DISClib.Algorithms.Graphs import dijsktra as djk
+from math import *
 assert cf
 
 """
@@ -57,7 +58,8 @@ def newCatalog():
                     'components': None,
                     'paths': None,
                     'ult_pos': None,
-                    'prim_pos': None
+                    'prim_pos': None,
+                    'direct': None
                     }
 
         analyzer['stops'] = mp.newMap(numelements=14000,
@@ -71,7 +73,11 @@ def newCatalog():
                                      comparefunction=compareCities)
         analyzer['connections'] = gr.newGraph(datastructure='ADJ_LIST',
                                               directed=True,
-                                              size=14000,
+                                              size=93000,
+                                              comparefunction=compareStops)
+        analyzer['direct'] = gr.newGraph(datastructure='ADJ_LIST',
+                                              directed=False,
+                                              size=93000,
                                               comparefunction=compareStops)
         return analyzer
     except Exception as exp:
@@ -85,6 +91,7 @@ def add_stops(infostop, catalog):
     if info is None:
         mp.put(catalog['stops'],infostop['IATA'],infostop)
         gr.insertVertex(catalog['connections'], infostop['IATA'])
+        gr.insertVertex(catalog['direct'], infostop['IATA'])
         
 def add_rutes(inforutes, catalog):
     info= mp.get(catalog['rutes'], inforutes['Departure'])
@@ -101,6 +108,14 @@ def add_cities(infocities, catalog):
     catalog['ult_pos']=infocities
     if info is None:
         mp.put(catalog['cities'],infocities['city_ascii'],infocities)
+
+def add_graph(infodirect, catalog):
+    if scc.stronglyConnected(catalog['components'], infodirect['Departure'], infodirect['Destination'] ):
+        if gr.getEdge(catalog['direct'], infodirect['Departure'], infodirect['Destination']) is None or gr.getEdge(catalog['direct'], infodirect['Destination'], infodirect['Departure']) is None :
+            gr.addEdge(catalog['direct'], infodirect['Departure'], infodirect['Destination'])
+    
+def components(catalog):
+    catalog['components']= scc.KosarajuSCC(catalog['connections'])
         
 
 
@@ -117,7 +132,7 @@ def cargaDatos(catalog):
 
 # Funciones utilizadas para comparar elementos dentro de una lista
 def requerimiento1(catalog):
-    lista=newList()
+    lista=lt.newList()
     llaves=mp.keySet(catalog['stops'])
     it1=it.newIterator(llaves)
     while it.hasNext(it1):
@@ -139,7 +154,95 @@ def requerimiento2(catalog, iata1, iata2):
     
     return resp, total
 
+def requerimiento3(catalog, ciudadA, ciudadB):
+    infociudadA= mp.get(catalog['cities'], ciudadA)['value']
+    infociudadB= mp.get(catalog['cities'], ciudadB)['value']
+    aeropuertoA=''
+    aeropuertoB=''
+    disA=20
+    disB=20
+    llaves=mp.keySet(catalog['stops'])
+    it1=it.newIterator(llaves)
+    while it.hasNext(it1):
+        elemento=it.next(it1)
+        infoar=mp.get(catalog['stops'], elemento)['value']
+        v1= haversine(float(infociudadA['lat']), float(infociudadA['lng']), float(infoar['Latitude']), float(infoar['Longitude']))
+        v2= haversine(float(infociudadB['lat']), float(infociudadB['lng']), float(infoar['Latitude']), float(infoar['Longitude']))
+        if  v1 < disA:
+            aeropuertoA= elemento
+            disA= v1
+        if  v2 < disB:
+            aeropuertoB= elemento
+            disB= v2
+    Dijkstra=djk.Dijkstra(catalog['connections'], aeropuertoA)
+    Pila= djk.pathTo(Dijkstra, aeropuertoB)
+    distancia= djk.distTo(Dijkstra, aeropuertoB )
+
+    return aeropuertoA, aeropuertoB, disA, disB, Pila, distancia
+
+
+def requerimiento4(catalog,ciudad_origen, millas):
+    infociudadA= mp.get(catalog['cities'], ciudad_origen)['value']
+    disA=20
+    aeropuertoA=''
+    rta=None
+    llaves=mp.keySet(catalog['stops'])
+    it1=it.newIterator(llaves)
+    while it.hasNext(it1):
+        elemento=it.next(it1)
+        infoar=mp.get(catalog['stops'], elemento)['value']
+        v1= haversine(float(infociudadA['lat']), float(infociudadA['lng']), float(infoar['Latitude']), float(infoar['Longitude']))
+        if  v1 < disA:
+            aeropuertoA= elemento
+            disA= v1
+    km=float(millas)*1.60
+    Dijkstra=djk.Dijkstra(catalog['connections'], aeropuertoA)
+    distancia=djk.distTo(Dijkstra, aeropuertoA)
+    if distancia <= km :
+        rta= djk.pathTo(Dijkstra, aeropuertoA)
+    
+    return rta, distancia, aeropuertoA
+
+
+def requerimiento5(catalog, aeropuerto):
+    a1= mp.get(catalog['rutes'], aeropuerto)['value']
+    lista1= lt.newList()
+    it1=it.newIterator(a1)
+    while it.hasNext(it1):
+        elemento=it.next(it1)
+        if lt.isPresent(lista1, elemento['Destination']) == 0:
+            lt.addLast(lista1, elemento['Destination'])
+    return lista1
+
+
+
+
+            
+
+
         
+
+
+def haversine(lon1, lat1, lon2, lat2):
+    """
+    Calculate the great circle distance between two points 
+    on the earth (specified in decimal degrees)
+    formula tomada de https://stackoverflow.com/questions/42686300/how-to-check-if-coordinate-inside-certain-area-python
+    """
+    # convert decimal degrees to radians 
+    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+
+    # haversine formula 
+    dlon = lon2 - lon1 
+    dlat = lat2 - lat1
+    a = sin(dlat/2)*2 + cos(lat1) * cos(lat2) * sin(dlon/2)*2
+    if a!=0 and a<1 and a>-1:
+        c = 2 * asin(sqrt(abs(a))) 
+    else:
+        c=0.1
+    r = 3956 # Radius of earth in miles. Use 3956 for miles
+    return c * r
+
 
 # Funciones de ordenamiento
 def compareStops(p1, p2):

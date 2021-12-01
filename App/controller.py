@@ -60,7 +60,30 @@ def loadCities(analyzer):
         model.add_cities(service, analyzer)
     return analyzer
 
+def loadGraph(analyzer):
+    model.components(analyzer)
+    servicesfile = cf.data_dir + 'routes_full.csv'
+    input_file = csv.DictReader(open(servicesfile, encoding="utf-8"),
+                                delimiter=",")
+    for service in input_file:
+        model.add_graph(service, analyzer)
+    return analyzer
+
 # Inicialización del Catálogo de libros
+def requerimiento1(catalog):
+    return model.requerimiento1(catalog)
+
+def requerimiento2(catalog, iata1, iata2):
+    return model.requerimiento2(catalog, iata1, iata2)
+
+def requerimiento3(catalog, ciudadA, ciudadB):
+    return model.requerimiento3(catalog, ciudadA, ciudadB)
+
+def requerimiento4(catalog,ciudad_origen, millas):
+    return model.requerimiento4(catalog,ciudad_origen, millas)
+
+def requerimiento5(catalog, aeropuerto):
+    return model.requerimiento5(catalog, aeropuerto)
 
 # Funciones para la carga de datos
 
