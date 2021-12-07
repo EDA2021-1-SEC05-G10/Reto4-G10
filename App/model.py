@@ -40,6 +40,7 @@ import DISClib.DataStructures.linkedlistiterator as it
 from DISClib.Algorithms.Graphs import scc
 from DISClib.Algorithms.Graphs import dijsktra as djk
 from math import *
+from DISClib.Algorithms.Graphs import prim as pr
 assert cf
 
 """
@@ -66,6 +67,9 @@ def newCatalog():
                                      maptype='PROBING',
                                      comparefunction=compareStops)
         analyzer['rutes'] = mp.newMap(numelements=14000,
+                                     maptype='PROBING',
+                                     comparefunction=compareRutes)
+        analyzer['exitrutes'] = mp.newMap(numelements=14000,
                                      maptype='PROBING',
                                      comparefunction=compareRutes)
         analyzer['cities'] = mp.newMap(numelements=14000,
@@ -103,6 +107,15 @@ def add_rutes(inforutes, catalog):
         lt.addLast(info['value'],inforutes)
     gr.addEdge(catalog['connections'], inforutes['Departure'], inforutes['Destination'], inforutes['distance_km'])
 
+def add_exit_rutes(inforutes, catalog):
+    info= mp.get(catalog['exitrutes'], inforutes['Destination'])
+    if info is None:
+        rutes= lt.newList('SINGLE_LINKED')
+        lt.addLast(rutes, inforutes)
+        mp.put(catalog['exitrutes'],inforutes['Destination'],rutes)
+    else:
+        lt.addLast(info['value'],inforutes)
+
 def add_cities(infocities, catalog):
     info= mp.get(catalog['cities'], infocities['city_ascii'])
     catalog['ult_pos']=infocities
@@ -138,8 +151,14 @@ def requerimiento1(catalog):
     while it.hasNext(it1):
         elemento=it.next(it1)
         if lt.size(gr.adjacents(catalog['connections'], elemento)) > 1:
+            print(elemento)
+            print(mp.get(catalog['rutes'], 'DXB'))
+            numsalidas=lt.size(mp.get(catalog['rutes'], elemento)['value'])
+            numentradas=lt.size(mp.get(catalog['exitrutes'], elemento)['value'])
             entrada= mp.get(catalog['stops'], elemento)['value']
-            lt.addLast(lista, entrada)
+            total=numsalidas + numentradas
+            infototal= [entrada, total, numentradas, numsalidas ]
+            lt.addLast(lista, infototal)
     return lista
 
 def requerimiento2(catalog, iata1, iata2):
@@ -196,12 +215,12 @@ def requerimiento4(catalog,ciudad_origen, millas):
             aeropuertoA= elemento
             disA= v1
     km=float(millas)*1.60
-    Dijkstra=djk.Dijkstra(catalog['connections'], aeropuertoA)
-    distancia=djk.distTo(Dijkstra, aeropuertoA)
-    if distancia <= km :
-        rta= djk.pathTo(Dijkstra, aeropuertoA)
-    
-    return rta, distancia, aeropuertoA
+    rutaExpansionMinima= pr.PrimMST(catalog['connections'])
+    rutaExp= pr.prim(catalog['connections'], rutaExpansionMinima, aeropuertoA)
+    ObtenerPeso= pr.weightMST(catalog['connections'], rutaExp)
+    ruta= pr.edgesMST(catalog['connections'], rutaExp)
+    millasNecesarias= (ObtenerPeso - km)/(1.6)
+    return ruta, ObtenerPeso, millasNecesarias
 
 
 def requerimiento5(catalog, aeropuerto):

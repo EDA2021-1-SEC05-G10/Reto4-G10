@@ -37,7 +37,7 @@ def init():
 
 
 def loadServices(analyzer):
-    servicesfile = cf.data_dir + 'airports_full.csv'
+    servicesfile = cf.data_dir + 'airports-utf8-small.csv'
     input_file = csv.DictReader(open(servicesfile, encoding="utf-8"),
                                 delimiter=",")
     for service in input_file:
@@ -45,15 +45,16 @@ def loadServices(analyzer):
     return analyzer
 
 def loadRutes(analyzer):
-    servicesfile = cf.data_dir + 'routes_full.csv'
+    servicesfile = cf.data_dir + 'routes-utf8-small.csv'
     input_file = csv.DictReader(open(servicesfile, encoding="utf-8"),
                                 delimiter=",")
     for service in input_file:
         model.add_rutes(service, analyzer)
+        model.add_exit_rutes(service, analyzer)
     return analyzer
 
 def loadCities(analyzer):
-    servicesfile = cf.data_dir + 'worldcities.csv'
+    servicesfile = cf.data_dir + 'worldcities-utf8.csv'
     input_file = csv.DictReader(open(servicesfile, encoding="utf-8"),
                                 delimiter=",")
     for service in input_file:
@@ -62,7 +63,7 @@ def loadCities(analyzer):
 
 def loadGraph(analyzer):
     model.components(analyzer)
-    servicesfile = cf.data_dir + 'routes_full.csv'
+    servicesfile = cf.data_dir + 'routes-utf8-small.csv'
     input_file = csv.DictReader(open(servicesfile, encoding="utf-8"),
                                 delimiter=",")
     for service in input_file:

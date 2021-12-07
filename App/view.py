@@ -24,6 +24,8 @@ import config as cf
 import sys
 import controller
 from DISClib.ADT import list as lt
+from DISClib.ADT import queue as q
+from DISClib.ADT import stack as st
 assert cf
 
 
@@ -62,33 +64,43 @@ def cargaDatos():
     print('\n La informacion de la ultima ciudad cargada es: '+ str(rta[4]['city'])+'Su ppoblacion es de: ' + str(rta[4]['population'])+
     'latitud y longitud'+ str(rta[4]['lat'])+', ' +str(rta[4]['lng']))
 
+    return catalog
 
 def requerimiento1():
     reque1=controller.requerimiento1(catalog)
-    print(lt.size(reque1))
-    for element in reque1:
-        print(element + '\n')
+    print("La cantidad de aeropuertos interconectados es "+ str(lt.size(reque1)))
+    for i in range(lt.size(reque1)):
+        print('El nombre es: '+ lt.getElement(reque1, i)[0]['Name'])
+        print('La ciudad es: '+ lt.getElement(reque1, i)[0]['City'])
+        print('El pais es: '+ lt.getElement(reque1, i)[0]['Country'])
+        print('El codigo IATA es: '+ lt.getElement(reque1, i)[0]['IATA'])
+        print('La cantidad de vuelos es: '+lt.getElement(reque1, i)[1])
+        print('El numero de vuelos entrados es: '+lt.getElement(reque1, i)[2])
+        print('El numero de vuelos salidos es: '+lt.getElement(reque1, i)[3])
+        
+        
 
 def requerimiento2(iata1, iata2):
     reque2=controller.requerimiento2(catalog, iata1, iata2)
-    print(reque2[1] + '\n')
-    print(reque2[0])
+    print(reque2[0] + '\n')
+    print('El total de componentes conectados es: '+ str(reque2[1]))
 
 def requerimiento3(ciudadA, ciudadB):
     reque3=controller.requerimiento3(catalog,ciudadA, ciudadB)
-    print(reque3[0] + '\n')
-    print(reque3[1] + '\n')
+    print(str(reque3[0]) + '\n')
+    print(str(reque3[1]) + '\n')
     print(str(reque3[2]+reque3[3]+reque3[5])+ '\n')
-    for element in reque3[4]:
-        print(element + '\n')
+    for i in range(st.size(reque3[4])):
+        print(st.pop(reque3[4]) + '\n')
 
 def requerimiento4(ciudad_origen, millas):
     reque4=controller.requerimiento4(catalog,ciudad_origen, millas)
-    print(lt.size(reque4[0]))
-    print(str(reque4[1])+ '\n')
-    print(lt.size(reque4[0])-1)
-    for element in reque4[0]:
-        print(element + '\n')
+    print('El numero total de nodos conectados es: '+ str(q.size(reque4[0])))
+    print('El costo total es: '+ str(reque4[1]))
+    print('La cantidad de millas excendetes es: '+ str(reque4[2]))
+    for i in range(q.size(reque4[0])):
+        print(q.dequeue(reque4[0]))
+        
 
 def requerimiento5(aeropuerto):
     reque5=controller.requerimiento5(catalog, aeropuerto)
@@ -109,7 +121,7 @@ while True:
     inputs = input('Seleccione una opción para continuar\n')
     if int(inputs[0]) == 1:
         print("Cargando información de los archivos ....")
-        cargaDatos()
+        catalog=cargaDatos()
         
     elif int(inputs[0]) == 2:
        requerimiento1()
