@@ -68,10 +68,10 @@ def newCatalog():
                                      comparefunction=compareStops)
         analyzer['rutes'] = mp.newMap(numelements=14000,
                                      maptype='PROBING',
-                                     comparefunction=compareRutes)
+                                     comparefunction=compareStops)
         analyzer['exitrutes'] = mp.newMap(numelements=14000,
                                      maptype='PROBING',
-                                     comparefunction=compareRutes)
+                                     comparefunction=compareStops)
         analyzer['cities'] = mp.newMap(numelements=14000,
                                      maptype='PROBING',
                                      comparefunction=compareCities)
@@ -105,7 +105,7 @@ def add_rutes(inforutes, catalog):
         mp.put(catalog['rutes'],inforutes['Departure'],rutes)
     else:
         lt.addLast(info['value'],inforutes)
-    gr.addEdge(catalog['connections'], inforutes['Departure'], inforutes['Destination'], inforutes['distance_km'])
+    gr.addEdge(catalog['connections'], inforutes['Departure'], inforutes['Destination'], float(inforutes['distance_km']))
 
 def add_exit_rutes(inforutes, catalog):
     info= mp.get(catalog['exitrutes'], inforutes['Destination'])
@@ -151,8 +151,6 @@ def requerimiento1(catalog):
     while it.hasNext(it1):
         elemento=it.next(it1)
         if lt.size(gr.adjacents(catalog['connections'], elemento)) > 1:
-            print(elemento)
-            print(mp.get(catalog['rutes'], 'DXB'))
             numsalidas=lt.size(mp.get(catalog['rutes'], elemento)['value'])
             numentradas=lt.size(mp.get(catalog['exitrutes'], elemento)['value'])
             entrada= mp.get(catalog['stops'], elemento)['value']
@@ -176,8 +174,8 @@ def requerimiento2(catalog, iata1, iata2):
 def requerimiento3(catalog, ciudadA, ciudadB):
     infociudadA= mp.get(catalog['cities'], ciudadA)['value']
     infociudadB= mp.get(catalog['cities'], ciudadB)['value']
-    aeropuertoA=''
-    aeropuertoB=''
+    aeropuertoA=None
+    aeropuertoB=None
     disA=20
     disB=20
     llaves=mp.keySet(catalog['stops'])
@@ -185,19 +183,19 @@ def requerimiento3(catalog, ciudadA, ciudadB):
     while it.hasNext(it1):
         elemento=it.next(it1)
         infoar=mp.get(catalog['stops'], elemento)['value']
-        v1= haversine(float(infociudadA['lat']), float(infociudadA['lng']), float(infoar['Latitude']), float(infoar['Longitude']))
-        v2= haversine(float(infociudadB['lat']), float(infociudadB['lng']), float(infoar['Latitude']), float(infoar['Longitude']))
-        if  v1 < disA:
-            aeropuertoA= elemento
+        v1= haversine( float(infoar['Longitude']), float(infoar['Latitude']), float(infociudadA['lng']),float(infociudadA['lat']))
+        v2= haversine( float(infoar['Longitude']), float(infoar['Latitude']), float(infociudadB['lng']),float(infociudadB['lat']))
+        if  v1 <= disA:
+            aeropuertoA = elemento
             disA= v1
-        if  v2 < disB:
-            aeropuertoB= elemento
+        if  v2 <= disB:
+            aeropuertoB = elemento
             disB= v2
-    Dijkstra=djk.Dijkstra(catalog['connections'], aeropuertoA)
-    Pila= djk.pathTo(Dijkstra, aeropuertoB)
-    distancia= djk.distTo(Dijkstra, aeropuertoB )
-
-    return aeropuertoA, aeropuertoB, disA, disB, Pila, distancia
+    if((aeropuertoA is not None ) and (aeropuertoB is not None)):
+        Dijkstra=djk.Dijkstra(catalog['connections'], aeropuertoA)
+        Pila= djk.pathTo(Dijkstra, aeropuertoB)
+        distancia= djk.distTo(Dijkstra, aeropuertoB )
+        return aeropuertoA, aeropuertoB, disA, disB, Pila, distancia
 
 
 def requerimiento4(catalog,ciudad_origen, millas):
@@ -210,7 +208,7 @@ def requerimiento4(catalog,ciudad_origen, millas):
     while it.hasNext(it1):
         elemento=it.next(it1)
         infoar=mp.get(catalog['stops'], elemento)['value']
-        v1= haversine(float(infociudadA['lat']), float(infociudadA['lng']), float(infoar['Latitude']), float(infoar['Longitude']))
+        v1= haversine(float(infoar['Longitude']), float(infoar['Latitude']), float(infociudadA['lng']),float(infociudadA['lat']))
         if  v1 < disA:
             aeropuertoA= elemento
             disA= v1
@@ -218,28 +216,22 @@ def requerimiento4(catalog,ciudad_origen, millas):
     rutaExpansionMinima= pr.PrimMST(catalog['connections'])
     rutaExp= pr.prim(catalog['connections'], rutaExpansionMinima, aeropuertoA)
     ObtenerPeso= pr.weightMST(catalog['connections'], rutaExp)
-    ruta= pr.edgesMST(catalog['connections'], rutaExp)
+    ruta= rutaExp['mst']
     millasNecesarias= (ObtenerPeso - km)/(1.6)
     return ruta, ObtenerPeso, millasNecesarias
-
 
 def requerimiento5(catalog, aeropuerto):
     a1= mp.get(catalog['rutes'], aeropuerto)['value']
     lista1= lt.newList()
+    lista2= lt.newList()
     it1=it.newIterator(a1)
     while it.hasNext(it1):
         elemento=it.next(it1)
         if lt.isPresent(lista1, elemento['Destination']) == 0:
             lt.addLast(lista1, elemento['Destination'])
-    return lista1
+            lt.addLast(lista2,elemento)
 
-
-
-
-            
-
-
-        
+    return lista2
 
 
 def haversine(lon1, lat1, lon2, lat2):
@@ -253,13 +245,10 @@ def haversine(lon1, lat1, lon2, lat2):
 
     # haversine formula 
     dlon = lon2 - lon1 
-    dlat = lat2 - lat1
-    a = sin(dlat/2)*2 + cos(lat1) * cos(lat2) * sin(dlon/2)*2
-    if a!=0 and a<1 and a>-1:
-        c = 2 * asin(sqrt(abs(a))) 
-    else:
-        c=0.1
-    r = 3956 # Radius of earth in miles. Use 3956 for miles
+    dlat = lat2 - lat1 
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a)) 
+    r = 6371 # Radius of earth in kilometers. Use 3956 for miles
     return c * r
 
 
@@ -279,8 +268,10 @@ def compareRutes(p1, p2):
         return -1
 
 def compareCities(p1, p2):
-    if p1 == p2:
+    sp2= p2['key']
+    if p1 == sp2:
         return 0
+    elif p1 > sp2:
+        return 1
     else:
         return -1
-

@@ -44,6 +44,7 @@ def printMenu():
     print("4- Encontrar la ruta más corta entre ciudades")
     print("5- Utilizar las millas de viajero")
     print("6- Cuantificar el efecto de un aeropuerto cerrado")
+    print("0- Salir")
 
 
 catalog = None
@@ -74,9 +75,9 @@ def requerimiento1():
         print('La ciudad es: '+ lt.getElement(reque1, i)[0]['City'])
         print('El pais es: '+ lt.getElement(reque1, i)[0]['Country'])
         print('El codigo IATA es: '+ lt.getElement(reque1, i)[0]['IATA'])
-        print('La cantidad de vuelos es: '+lt.getElement(reque1, i)[1])
-        print('El numero de vuelos entrados es: '+lt.getElement(reque1, i)[2])
-        print('El numero de vuelos salidos es: '+lt.getElement(reque1, i)[3])
+        print('La cantidad de vuelos es: '+str(lt.getElement(reque1, i)[1]))
+        print('El numero de vuelos entrados es: '+str(lt.getElement(reque1, i)[2]))
+        print('El numero de vuelos salidos es: '+str(lt.getElement(reque1, i)[3]))
         
         
 
@@ -87,17 +88,19 @@ def requerimiento2(iata1, iata2):
 
 def requerimiento3(ciudadA, ciudadB):
     reque3=controller.requerimiento3(catalog,ciudadA, ciudadB)
-    print(str(reque3[0]) + '\n')
-    print(str(reque3[1]) + '\n')
-    print(str(reque3[2]+reque3[3]+reque3[5])+ '\n')
-    for i in range(st.size(reque3[4])):
-        print(st.pop(reque3[4]) + '\n')
+    if reque3 is not None:
+        print(str(reque3[0]) + '\n')
+        print(str(reque3[1]) + '\n')
+        print(str(reque3[2]+reque3[3]+reque3[5])+ '\n')
+        for i in range(st.size(reque3[4])):
+            print(st.pop(reque3[4]) + '\n')
 
 def requerimiento4(ciudad_origen, millas):
     reque4=controller.requerimiento4(catalog,ciudad_origen, millas)
+    print(reque4[1])
     print('El numero total de nodos conectados es: '+ str(q.size(reque4[0])))
     print('El costo total es: '+ str(reque4[1]))
-    print('La cantidad de millas excendetes es: '+ str(reque4[2]))
+    print('La cantidad de millas requeridas son: '+ str(reque4[2]))
     for i in range(q.size(reque4[0])):
         print(q.dequeue(reque4[0]))
         
@@ -105,12 +108,8 @@ def requerimiento4(ciudad_origen, millas):
 def requerimiento5(aeropuerto):
     reque5=controller.requerimiento5(catalog, aeropuerto)
     print(lt.size(reque5))
-    for element in reque5:
-        print(element + '\n')
-
-
-
-
+    for i in range(lt.size(reque5) ) :
+        print(str(lt.getElement(reque5,i)) + '\n')
 
 
 """
@@ -145,8 +144,7 @@ while True:
         codigo= input('Ingrese codigo IATA aeropuerto1: ')
         requerimiento5(codigo)
 
-
-
     else:
         sys.exit(0)
 sys.exit(0)
+
