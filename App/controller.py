@@ -86,6 +86,9 @@ def requerimiento4(catalog,ciudad_origen, millas):
 def requerimiento5(catalog, aeropuerto):
     return model.requerimiento5(catalog, aeropuerto)
 
+def requerimiento6(catalog, origen, destino):
+    return model.requerimiento6(catalog,origen, destino)
+
 # Funciones para la carga de datos
 
 # Funciones de ordenamiento

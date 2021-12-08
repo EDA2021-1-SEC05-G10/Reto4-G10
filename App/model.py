@@ -27,6 +27,7 @@
 
 from os import system
 import sys
+from DISClib.Algorithms.Graphs.bfs import bfsVertex
 from DISClib.DataStructures.adjlist import vertices
 from DISClib.DataStructures.arraylist import newList
 import config as cf
@@ -42,6 +43,7 @@ from DISClib.Algorithms.Graphs import dijsktra as djk
 from math import *
 from DISClib.Algorithms.Graphs import prim as pr
 assert cf
+import requests
 
 """
 Se define la estructura de un catálogo de videos. El catálogo tendrá dos listas, una para los videos, otra para las categorias de
@@ -232,7 +234,39 @@ def requerimiento5(catalog, aeropuerto):
             lt.addLast(lista2,elemento)
 
     return lista2
+access_token = ""
 
+def requerimiento6(catalog, origen, destino):
+    
+    headers = {"Authorization": "Bearer " + access_token}
+    infoOrigen= me.getValue(mp.get(catalog['cities'], origen))
+    infoDest = me.getValue(mp.get(catalog['cities'], destino))
+    params = {
+        "latitude": float(infoOrigen['lat']),
+        "longitude": float(infoOrigen['lng']),
+        "sort" : "relevance",
+        "page[limit]" : 1
+    }
+    params2 = {
+        "latitude": float(infoDest['lat']),
+        "longitude": float(infoDest['lng']),
+        "sort" : "relevance",
+        "page[limit]" : 1
+    }
+    r = requests.get('https://test.api.amadeus.com/v1/reference-data/locations/airports', headers=headers, params=params)
+    r2 = requests.get('https://test.api.amadeus.com/v1/reference-data/locations/airports', headers=headers, params=params2)
+    
+    aeroOri,aeroOriLat,aeroOriLng =  r.json()['data'][0]['iataCode'],float(r.json()['data'][0]['geoCode']["latitude"]),float(r.json()['data'][0]['geoCode']["longitude"])
+
+    aeroDest,aeroDestLat,aeroDestLng = r2.json()['data'][0]['iataCode'],float(r2.json()['data'][0]['geoCode']["latitude"]),float(r2.json()['data'][0]['geoCode']["longitude"])
+  
+    Dijkstra=djk.Dijkstra(catalog['connections'], aeroOri)
+    Pila= djk.pathTo(Dijkstra, aeroDest)
+    distancia= djk.distTo(Dijkstra, aeroDest )
+    
+    disOri = haversine(float(infoOrigen['lng']),float(infoOrigen['lat']),float(aeroOriLng),float(aeroOriLat))
+    disDest = haversine(float(infoDest['lng']),float(infoDest['lat']),float(aeroDestLng),float(aeroDestLat))
+    return Pila,(distancia+disOri+disDest)
 
 def haversine(lon1, lat1, lon2, lat2):
     """

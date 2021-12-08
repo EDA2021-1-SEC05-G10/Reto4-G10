@@ -20,6 +20,7 @@
  * along withthis program.  If not, see <http://www.gnu.org/licenses/>.
  """
 
+import prettytable
 import config as cf
 import sys
 import controller
@@ -27,7 +28,7 @@ from DISClib.ADT import list as lt
 from DISClib.ADT import queue as q
 from DISClib.ADT import stack as st
 assert cf
-
+from prettytable import PrettyTable
 
 """
 La vista se encarga de la interacción con el usuario
@@ -44,6 +45,7 @@ def printMenu():
     print("4- Encontrar la ruta más corta entre ciudades")
     print("5- Utilizar las millas de viajero")
     print("6- Cuantificar el efecto de un aeropuerto cerrado")
+    print("7- La ruta mas corta entre ciudades con ayuda de API")
     print("0- Salir")
 
 
@@ -57,28 +59,35 @@ def cargaDatos():
     controller.loadCities(catalog)
     controller.loadGraph(catalog)
     rta= controller.loadDatos(catalog)
+    tabla1 = PrettyTable()
+    tabla1.field_names = ["Nombre", "Ciudad","País","Latitud","Longitud"]
+    tabla2 = PrettyTable()
+    tabla2.field_names = ["Nombre", "Población","Latitud","Longitud"]
     print('El total de aeropuertos en cada grafo es: '+ str(rta[0]))
     print('\n El total de rutas aéreas en cada grafo es: '+str(rta[1]))
     print('\n El total de ciudades: '+str(rta[2]))
-    print('\n El primer aeropuerto cargado es: '+str(rta[3]['Name'])+ 'ciudad: '+str(rta[3]['City'])+ 'pais: '+ str(rta[3]['Country'])+ 
-    'latitud y longitud: '+ str(rta[3]['Latitude'])+ ', '+ str(rta[3]['Longitude']))
-    print('\n La informacion de la ultima ciudad cargada es: '+ str(rta[4]['city'])+'Su ppoblacion es de: ' + str(rta[4]['population'])+
-    'latitud y longitud'+ str(rta[4]['lat'])+', ' +str(rta[4]['lng']))
-
+    print('\n El primer aeropuerto cargado es: ')
+    t1 = [str(rta[3]['Name']),str(rta[3]['City']),str(rta[3]['Country']),str(rta[3]['Latitude']),str(rta[3]['Longitude'])]
+    tabla1.add_row(t1)
+    print(tabla1)
+    print('\n La informacion de la ultima ciudad cargada es: ')
+    t2 = [str(rta[4]['city']),str(rta[4]['population']),str(rta[4]['lat']),str(rta[4]['lng'])]
+    tabla2.add_row(t2)
+    print(tabla2)
     return catalog
 
 def requerimiento1():
     reque1=controller.requerimiento1(catalog)
     print("La cantidad de aeropuertos interconectados es "+ str(lt.size(reque1)))
+    tabla1 = PrettyTable()
+    tabla1.field_names = ["Nombre", "Ciudad","País","IATA","Cant Vuelos","inbound","outbound"]
+    tabla1._max_width={"Nombre":20,"Ciudad":17,"País":15,"IATA":10 ,"Cant Vuelos":10,"inbound":10,"outbound":10}
     for i in range(lt.size(reque1)):
-        print('El nombre es: '+ lt.getElement(reque1, i)[0]['Name'])
-        print('La ciudad es: '+ lt.getElement(reque1, i)[0]['City'])
-        print('El pais es: '+ lt.getElement(reque1, i)[0]['Country'])
-        print('El codigo IATA es: '+ lt.getElement(reque1, i)[0]['IATA'])
-        print('La cantidad de vuelos es: '+str(lt.getElement(reque1, i)[1]))
-        print('El numero de vuelos entrados es: '+str(lt.getElement(reque1, i)[2]))
-        print('El numero de vuelos salidos es: '+str(lt.getElement(reque1, i)[3]))
-        
+        datos = [lt.getElement(reque1, i)[0]['Name'],lt.getElement(reque1, i)[0]['City'],lt.getElement(reque1, i)[0]['Country'],
+                lt.getElement(reque1, i)[0]['IATA'],str(lt.getElement(reque1, i)[1]),str(lt.getElement(reque1, i)[2]),
+                str(lt.getElement(reque1, i)[3])]
+        tabla1.add_row(datos)
+    print(tabla1)
         
 
 def requerimiento2(iata1, iata2):
@@ -111,6 +120,20 @@ def requerimiento5(aeropuerto):
     for i in range(lt.size(reque5) ) :
         print(str(lt.getElement(reque5,i)) + '\n')
 
+def requerimiento6(origen,destino):
+    recorrido, distancia=controller.requerimiento6(catalog, origen, destino)
+    print("La distancia total es: " +str(distancia))
+    print("La ruta final es: \n")
+    i = 1
+    lista = []
+    for cada in lt.iterator(recorrido):
+        if i == 1:
+            lista.append(cada["vertexA"])
+            lista.append(cada["vertexB"])
+        else:
+            lista.append(cada["vertexB"])
+        i+=1
+    print(lista)
 
 """
 Menu principal
@@ -143,6 +166,11 @@ while True:
     elif int(inputs[0]) == 6:
         codigo= input('Ingrese codigo IATA aeropuerto1: ')
         requerimiento5(codigo)
+
+    elif int(inputs[0]) == 7:
+        origen = input("Ingrese ciudad de origen")
+        destino = input("Ingrese ciudad de destino")
+        requerimiento6(origen,destino)
 
     else:
         sys.exit(0)
