@@ -24,6 +24,8 @@ import prettytable
 import config as cf
 import sys
 import controller
+from DISClib.ADT import map as mp
+from DISClib.DataStructures import mapentry as me
 from DISClib.ADT import list as lt
 from DISClib.ADT import queue as q
 from DISClib.ADT import stack as st
@@ -92,8 +94,9 @@ def requerimiento1():
 
 def requerimiento2(iata1, iata2):
     reque2=controller.requerimiento2(catalog, iata1, iata2)
+    print('El Numero total de SCC en la red de rutas del aeropuerto es: '+ str(reque2[1]))
+    print('El aeropuerto de Pulkovo y el aeropuerto de Rutland Plains van juntos ?')
     print(reque2[0] + '\n')
-    print('El total de componentes conectados es: '+ str(reque2[1]))
 
 def requerimiento3(ciudadA, ciudadB):
     reque3=controller.requerimiento3(catalog,ciudadA, ciudadB)
@@ -110,15 +113,26 @@ def requerimiento4(ciudad_origen, millas):
     print('El numero total de nodos conectados es: '+ str(q.size(reque4[0])))
     print('El costo total es: '+ str(reque4[1]))
     print('La cantidad de millas requeridas son: '+ str(reque4[2]))
+    tabla1 = PrettyTable()
+    tabla1.field_names = ["Departiture", "Destination","Km"]
     for i in range(q.size(reque4[0])):
-        print(q.dequeue(reque4[0]))
-        
+        x = q.dequeue(reque4[0])
+        datos = [x["vertexA"],x["vertexB"],x["weight"]]
+        tabla1.add_row(datos)
+    print(tabla1)
 
 def requerimiento5(aeropuerto):
     reque5=controller.requerimiento5(catalog, aeropuerto)
     print(lt.size(reque5))
-    for i in range(lt.size(reque5) ) :
-        print(str(lt.getElement(reque5,i)) + '\n')
+    tabla1 = PrettyTable()
+    tabla1.field_names = ["IATA", "Name","City","Country"]
+    for i in range(1,lt.size(reque5)) :
+        x=lt.getElement(reque5,i)
+        datos = me.getValue(mp.get(catalog["stops"],x["Destination"]))
+        datos = [datos["IATA"],datos["Name"],datos["City"],datos["Country"]]
+        tabla1.add_row(datos)
+    print("Los aeropuertos afectados son: ")
+    print(tabla1)
 
 def requerimiento6(origen,destino):
     recorrido, distancia=controller.requerimiento6(catalog, origen, destino)
@@ -133,6 +147,7 @@ def requerimiento6(origen,destino):
         else:
             lista.append(cada["vertexB"])
         i+=1
+    print("La ruta final es: \n")
     print(lista)
 
 """

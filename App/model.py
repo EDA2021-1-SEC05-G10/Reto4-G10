@@ -169,9 +169,7 @@ def requerimiento2(catalog, iata1, iata2):
     if conectados == True:
         resp='Estan en el mismo cluster'
     else:
-        resp='No estan en el mismo cluster'
-    
-    return resp, total
+        resp='ANS= False'
 
 def requerimiento3(catalog, ciudadA, ciudadB):
     infociudadA= mp.get(catalog['cities'], ciudadA)['value']
